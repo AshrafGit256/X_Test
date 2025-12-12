@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>Test Post Creation</h1>
+    <button onclick="testPost()">Test Simple Post</button>
+    <div id="result"></div>
+    
+    <script>
+    async function testPost() {
+        const API_URL = window.location.origin + '/api';
+        
+        try {
+            const response = await fetch(API_URL + '/posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: 'tester',
+                    content: 'Test post at ' + new Date().toLocaleTimeString()
+                })
+            });
+            
+            const result = await response.json();
+            document.getElementById('result').innerHTML = 
+                `Success! Post ID: ${result.id}`;
+            console.log('Test result:', result);
+        } catch (error) {
+            document.getElementById('result').innerHTML = 
+                `Error: ${error.message}`;
+            console.error('Test error:', error);
+        }
+    }
+    </script>
+</body>
+</html>
