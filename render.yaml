@@ -1,0 +1,28 @@
+# render.yaml
+services:
+  - type: web
+    name: x-clone-platform
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.x
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: 5432
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSL
+        value: true
+
+databases:
+  - name: xclone_db
+    databaseName: xclone
+    user: xclone_user
+    plan: free

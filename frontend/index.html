@@ -1,0 +1,47 @@
+<!-- frontend/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-Clone Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fab fa-twitter"></i> X-Clone</h1>
+            <p>A simple social platform</p>
+        </header>
+
+        <div class="main-content">
+            <div class="post-form">
+                <h2>Create a Post</h2>
+                <div class="form-group">
+                    <input type="text" id="username" placeholder="Your username" value="anonymous">
+                </div>
+                <div class="form-group">
+                    <textarea id="postContent" placeholder="What's happening?" rows="3"></textarea>
+                </div>
+                <button id="postButton" class="btn-primary">
+                    <i class="fas fa-paper-plane"></i> Post
+                </button>
+            </div>
+
+            <div class="posts-container">
+                <h2>Recent Posts</h2>
+                <div id="postsList">
+                    <!-- Posts will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Built with Node.js, PostgreSQL & Render</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
