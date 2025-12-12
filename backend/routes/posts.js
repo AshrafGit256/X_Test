@@ -19,37 +19,16 @@ router.get('/', async (req, res) => {
 });
 
 // Create post with media upload
-router.post('/', upload.array('media', 4), async (req, res) => {
+router.post('/', async (req, res) => {
   console.log('POST /api/posts received');
   console.log('Body:', req.body);
   console.log('Files:', req.files ? req.files.length : 0);
   
   try {
     const { username, content } = req.body;
-    const files = req.files || [];
-    
-    // Determine media type
-    let mediaType = null;
-    const mediaUrls = [];
-    
-    if (files.length > 0) {
-      // For local storage, create URLs
-      files.forEach(file => {
-        mediaUrls.push(`/uploads/${file.filename}`);
-      });
-      
-      // Determine media type
-      const hasImages = files.some(f => f.mimetype.startsWith('image'));
-      const hasVideos = files.some(f => f.mimetype.startsWith('video'));
-      
-      if (hasImages && hasVideos) mediaType = 'mixed';
-      else if (hasImages) mediaType = 'image';
-      else if (hasVideos) mediaType = 'video';
-    }
-    
     const result = await pool.query(
-      'INSERT INTO posts (username, content, media_urls, media_type) VALUES ($1, $2, $3, $4) RETURNING *',
-      [username || 'anonymous', content, mediaUrls.length > 0 ? mediaUrls : null, mediaType]
+      'INSERT INTO posts (username, content) VALUES ($1, $2) RETURNING *',
+      [username || 'anonymous', content]
     );
     
     res.status(201).json(result.rows[0]);
