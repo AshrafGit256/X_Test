@@ -11,10 +11,12 @@ const pool = new Pool({
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
 });
 
-// Create tables if they don't exist
+// Improved initDB function
 const initDB = async () => {
   const client = await pool.connect();
   try {
+    console.log('Initializing database...');
+    
     // Create posts table
     await client.query(`
       CREATE TABLE IF NOT EXISTS posts (
@@ -35,9 +37,21 @@ const initDB = async () => {
       )
     `);
     
-    console.log('Database tables created/verified');
+    console.log('✅ Database tables created/verified successfully');
+    
+    // Test by inserting a sample post
+    const testResult = await client.query(
+      'INSERT INTO posts (username, content) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id',
+      ['system', 'Welcome to X-Clone! Database is ready.']
+    );
+    
+    if (testResult.rows[0]) {
+      console.log('✅ Test post created with ID:', testResult.rows[0].id);
+    }
+    
   } catch (err) {
-    console.error('Error creating tables:', err);
+    console.error('❌ Error initializing database:', err.message);
+    throw err; // Re-throw to handle in server.js
   } finally {
     client.release();
   }
