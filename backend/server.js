@@ -20,6 +20,56 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Routes
+
+// Add this route BEFORE your other routes
+app.get('/api/fix-database', async (req, res) => {
+  try {
+    console.log('Attempting to update database schema...');
+    
+    // Check current structure
+    const check = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'posts'
+    `);
+    
+    console.log('Current columns:', check.rows.map(r => r.column_name));
+    
+    // Add missing columns
+    await pool.query(`
+      ALTER TABLE posts 
+      ADD COLUMN IF NOT EXISTS media_urls TEXT[],
+      ADD COLUMN IF NOT EXISTS media_type VARCHAR(20),
+      ADD COLUMN IF NOT EXISTS likes_count INT DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS retweets_count INT DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS replies_count INT DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS is_retweet BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS original_post_id INT,
+      ADD COLUMN IF NOT EXISTS original_username VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS parent_post_id INT
+    `);
+    
+    // Verify
+    const after = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'posts'
+    `);
+    
+    console.log('Updated columns:', after.rows.map(r => r.column_name));
+    
+    res.json({ 
+      success: true, 
+      message: 'Database schema updated successfully',
+      columns: after.rows.map(r => r.column_name)
+    });
+    
+  } catch (err) {
+    console.error('Schema update failed:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
