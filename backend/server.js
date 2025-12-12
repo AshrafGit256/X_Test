@@ -3,6 +3,11 @@ const express = require('express');
 const cors = require('cors');
 const { initDB, pool } = require('./db'); // Import pool too
 
+// Add this after imports
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend')));
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 

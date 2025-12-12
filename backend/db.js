@@ -1,23 +1,24 @@
-// backend/db.js
+// backend/db.js - COMPLETE FILE
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// Use Render's DATABASE_URL or local .env
+const connectionString = process.env.DATABASE_URL || 
+  `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+  connectionString: connectionString,
+  ssl: {
+    rejectUnauthorized: false  // Required for Render PostgreSQL
+  }
 });
 
-// Improved initDB function
 const initDB = async () => {
   const client = await pool.connect();
   try {
     console.log('Initializing database...');
     
-    // Create posts table
+    // Create tables if they don't exist
     await client.query(`
       CREATE TABLE IF NOT EXISTS posts (
         id SERIAL PRIMARY KEY,
@@ -27,7 +28,6 @@ const initDB = async () => {
       )
     `);
     
-    // Create users table
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -37,21 +37,11 @@ const initDB = async () => {
       )
     `);
     
-    console.log('✅ Database tables created/verified successfully');
-    
-    // Test by inserting a sample post
-    const testResult = await client.query(
-      'INSERT INTO posts (username, content) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id',
-      ['system', 'Welcome to X-Clone! Database is ready.']
-    );
-    
-    if (testResult.rows[0]) {
-      console.log('✅ Test post created with ID:', testResult.rows[0].id);
-    }
+    console.log('✅ Database tables ready');
     
   } catch (err) {
-    console.error('❌ Error initializing database:', err.message);
-    throw err; // Re-throw to handle in server.js
+    console.error('❌ Database error:', err.message);
+    throw err;
   } finally {
     client.release();
   }

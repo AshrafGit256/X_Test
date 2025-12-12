@@ -1,7 +1,5 @@
 // frontend/script.js
-const API_URL = window.location.hostname.includes('localhost') 
-    ? 'http://localhost:3000/api' 
-    : '/api';
+const API_URL = window.location.origin + '/api';
 
 // DOM Elements
 const postButton = document.getElementById('postButton');
