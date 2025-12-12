@@ -1,4 +1,4 @@
-// backend/db.js - COMPLETE FILE
+// backend/db.js
 const { Pool } = require('pg');
 require('dotenv').config();
 
@@ -8,17 +8,14 @@ const connectionString = process.env.DATABASE_URL ||
 
 const pool = new Pool({
   connectionString: connectionString,
-  ssl: {
-    rejectUnauthorized: false  // Required for Render PostgreSQL
-  }
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 const initDB = async () => {
   const client = await pool.connect();
   try {
-    console.log('Initializing database...');
+    console.log('Database connection:', process.env.DB_NAME || 'using DATABASE_URL');
     
-    // Create tables if they don't exist
     await client.query(`
       CREATE TABLE IF NOT EXISTS posts (
         id SERIAL PRIMARY KEY,

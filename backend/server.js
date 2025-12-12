@@ -1,12 +1,8 @@
 // backend/server.js
 const express = require('express');
 const cors = require('cors');
-const { initDB, pool } = require('./db'); // Import pool too
-
-// Add this after imports
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend')));
-}
+const path = require('path');
+const { initDB, pool } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,19 +10,24 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-const path = require('path');
-app.use(express.static(path.join(__dirname, '../frontend')));
 
-// Add this AFTER the static middleware but BEFORE your API routes
+// Static files - conditionally for production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend')));
+} else {
+  app.use(express.static(path.join(__dirname, '../frontend')));
+}
+
+// Routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// Routes
+// API Routes
 const postsRouter = require('./routes/posts');
 app.use('/api/posts', postsRouter);
 
-// Test route to check if API is working
+// Health check
 app.get('/api/health', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW() as time, version() as version');
@@ -44,17 +45,12 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-
-// Add this route to see ALL database records
+// Database inspection
 app.get('/api/db/inspect', async (req, res) => {
   try {
-    // Get all posts
     const posts = await pool.query('SELECT * FROM posts ORDER BY created_at DESC');
-    
-    // Get all users
     const users = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
     
-    // Get database info
     const dbInfo = await pool.query(`
       SELECT 
         (SELECT COUNT(*) FROM posts) as total_posts,
@@ -64,7 +60,7 @@ app.get('/api/db/inspect', async (req, res) => {
     `);
     
     res.json({
-      database: process.env.DB_NAME,
+      database: process.env.DB_NAME || 'xclone',
       info: dbInfo.rows[0],
       posts: posts.rows,
       users: users.rows,
@@ -76,23 +72,93 @@ app.get('/api/db/inspect', async (req, res) => {
   }
 });
 
+// Admin database view
+app.get('/admin/db', async (req, res) => {
+  try {
+    const posts = await pool.query('SELECT * FROM posts ORDER BY created_at DESC');
+    const users = await pool.query('SELECT * FROM users');
+    
+    let html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Database Records</title>
+        <style>
+          body { font-family: Arial; padding: 20px; }
+          table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+          th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+          th { background-color: #f2f2f2; }
+          tr:hover { background-color: #f5f5f5; }
+        </style>
+      </head>
+      <body>
+        <h1>Database Records</h1>
+        <h2>Posts (${posts.rows.length})</h2>
+        <table>
+          <tr><th>ID</th><th>User</th><th>Content</th><th>Time</th></tr>
+    `;
+    
+    posts.rows.forEach(post => {
+      html += `
+        <tr>
+          <td>${post.id}</td>
+          <td>${post.username}</td>
+          <td>${post.content}</td>
+          <td>${new Date(post.created_at).toLocaleString()}</td>
+        </tr>`;
+    });
+    
+    html += `
+        </table>
+        <h2>Users (${users.rows.length})</h2>
+        <table>
+          <tr><th>ID</th><th>Username</th><th>Display Name</th><th>Created</th></tr>
+    `;
+    
+    users.rows.forEach(user => {
+      html += `
+        <tr>
+          <td>${user.id}</td>
+          <td>${user.username}</td>
+          <td>${user.display_name || '(not set)'}</td>
+          <td>${new Date(user.created_at).toLocaleString()}</td>
+        </tr>`;
+    });
+    
+    html += `
+        </table>
+        <br>
+        <a href="/">Back to Home</a> | 
+        <a href="/api/health">Health Check</a> | 
+        <a href="/api/posts">Posts API</a>
+      </body>
+      </html>
+    `;
+    
+    res.send(html);
+  } catch (err) {
+    res.send(`<h1>Error</h1><p>${err.message}</p>`);
+  }
+});
 
-// Initialize database and start server
+// Initialize and start server
 const startServer = async () => {
   try {
     await initDB();
     
     app.listen(PORT, () => {
       console.log(`✅ Server running on http://localhost:${PORT}`);
-      console.log(`✅ API available at http://localhost:${PORT}/api/posts`);
-      console.log(`✅ Health check at http://localhost:${PORT}/api/health`);
-      console.log(`✅ Frontend at http://localhost:${PORT}`);
+      console.log(`✅ Frontend: http://localhost:${PORT}`);
+      console.log(`✅ API: http://localhost:${PORT}/api/posts`);
+      console.log(`✅ Health: http://localhost:${PORT}/api/health`);
+      console.log(`✅ Admin: http://localhost:${PORT}/admin/db`);
+      console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
     });
     
   } catch (err) {
     console.error('❌ Failed to start server:', err.message);
     console.log('Retrying in 5 seconds...');
-    setTimeout(startServer, 5000); // Retry after 5 seconds
+    setTimeout(startServer, 5000);
   }
 };
 
