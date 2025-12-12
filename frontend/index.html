@@ -16,17 +16,45 @@
         </header>
 
         <div class="main-content">
+            <!-- frontend/index.html - Update post form -->
             <div class="post-form">
-                <h2>Create a Post</h2>
+                <h2>What's happening?</h2>
                 <div class="form-group">
                     <input type="text" id="username" placeholder="Your username" value="anonymous">
                 </div>
+                
                 <div class="form-group">
                     <textarea id="postContent" placeholder="What's happening?" rows="3"></textarea>
                 </div>
-                <button id="postButton" class="btn-primary">
+                
+                <!-- Media Preview -->
+                <div id="mediaPreview" class="media-preview">
+                    <!-- Media previews will appear here -->
+                </div>
+                
+                <!-- Media Upload Controls -->
+                <div class="media-controls">
+                    <div class="media-icons">
+                    <label for="mediaUpload" class="media-icon" title="Add media">
+                        <i class="fas fa-image"></i>
+                    </label>
+                    <input type="file" id="mediaUpload" multiple accept="image/*,video/*" style="display: none;">
+                    
+                    <div class="media-icon" title="Add GIF">
+                        <i class="fas fa-film"></i>
+                    </div>
+                    <div class="media-icon" title="Add poll">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="media-icon" title="Add emoji">
+                        <i class="far fa-smile"></i>
+                    </div>
+                    </div>
+                    
+                    <button id="postButton" class="btn-primary">
                     <i class="fas fa-paper-plane"></i> Post
-                </button>
+                    </button>
+                </div>
             </div>
 
             <div class="posts-container">
