@@ -66,46 +66,73 @@ async function loadPosts() {
 function addPostToDOM(post) {
   const postElement = document.createElement('div');
   postElement.className = 'post';
+  postElement.dataset.id = post.id;
   
   const time = new Date(post.created_at).toLocaleString();
+  const currentUser = usernameInput.value.trim() || 'anonymous';
   
+  // Media HTML (from previous implementation)
   let mediaHTML = '';
   if (post.media_urls && post.media_urls.length > 0) {
-    let gridClass = '';
-    if (post.media_urls.length === 1) gridClass = 'single-media';
-    else if (post.media_urls.length === 2) gridClass = 'two-media';
-    else if (post.media_urls.length === 3) gridClass = 'three-media';
-    else gridClass = 'four-media';
-    
-    mediaHTML = `<div class="post-media media-grid ${gridClass}">`;
-    
-    post.media_urls.forEach((url, index) => {
-      const isVideo = url.match(/\.(mp4|mov|avi|webm)$/i);
-      mediaHTML += `
-        <div class="media-item">
-          ${isVideo 
-            ? `<video controls><source src="${API_URL}/posts${url}" type="video/mp4"></video>`
-            : `<img src="${API_URL}/posts${url}" alt="Post image ${index + 1}">`
-          }
-        </div>
-      `;
-    });
-    
-    mediaHTML += '</div>';
+    // ... (keep your existing media HTML code)
+  }
+  
+  // Check if it's a retweet
+  let retweetHeader = '';
+  if (post.is_retweet && post.original_username) {
+    retweetHeader = `
+      <div class="retweet-header">
+        <i class="fas fa-retweet"></i> ${post.username} retweeted
+      </div>
+    `;
   }
   
   postElement.innerHTML = `
+    ${retweetHeader}
     <div class="post-header">
-      <span class="username">@${post.username}</span>
+      <span class="username">@${post.is_retweet ? post.original_username : post.username}</span>
       <span class="post-time">${time}</span>
     </div>
     ${post.content ? `<div class="post-content">${post.content}</div>` : ''}
     ${mediaHTML}
+    
+    <!-- Interaction Bar -->
+    <div class="interaction-bar">
+      <!-- Reply Button -->
+      <button class="interaction-btn reply-btn" data-id="${post.id}">
+        <i class="far fa-comment"></i>
+        <span class="count">${post.replies_count || 0}</span>
+      </button>
+      
+      <!-- Retweet Button -->
+      <button class="interaction-btn retweet-btn ${post.user_retweeted ? 'active' : ''}" data-id="${post.id}">
+        <i class="fas fa-retweet"></i>
+        <span class="count">${post.retweets_count || 0}</span>
+      </button>
+      
+      <!-- Like Button -->
+      <button class="interaction-btn like-btn ${post.user_liked ? 'active' : ''}" data-id="${post.id}">
+        <i class="${post.user_liked ? 'fas' : 'far'} fa-heart"></i>
+        <span class="count">${post.likes_count || 0}</span>
+      </button>
+      
+      <!-- Share Button -->
+      <button class="interaction-btn share-btn">
+        <i class="far fa-share-square"></i>
+      </button>
+    </div>
+    
+    <!-- Reply Form (hidden by default) -->
+    <div class="reply-form" style="display: none;">
+      <textarea class="reply-text" placeholder="Post your reply" rows="2"></textarea>
+      <button class="btn-primary submit-reply" data-id="${post.id}">Reply</button>
+      <button class="btn-secondary cancel-reply">Cancel</button>
+    </div>
   `;
   
   postsList.prepend(postElement);
+  attachInteractionListeners(postElement);
 }
-
 
 // Add to script.js
 postContentInput.addEventListener('input', function() {
@@ -128,6 +155,26 @@ postContentInput.addEventListener('input', function() {
   else counter.classList.remove('error');
 });
 
+// Add this function to script.js (if not already there)
+function attachInteractionListeners(postElement) {
+  // This function is now defined in interactions.js
+  // It will be called automatically
+}
+
+// Update loadPosts function to include username parameter
+async function loadPosts() {
+  try {
+    const currentUser = usernameInput.value.trim() || 'anonymous';
+    const response = await fetch(`${API_URL}/posts?username=${currentUser}`);
+    const posts = await response.json();
+    
+    postsList.innerHTML = '';
+    posts.forEach(post => addPostToDOM(post));
+  } catch (error) {
+    console.error('Error loading posts:', error);
+    postsList.innerHTML = '<p>Error loading posts. Please refresh the page.</p>';
+  }
+}
 
 // Auto-refresh posts every 30 seconds
 setInterval(loadPosts, 30000);

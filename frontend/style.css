@@ -276,3 +276,113 @@ footer {
 .character-count.error {
   color: #ff4444;
 }
+
+/* Post Interactions */
+.interaction-bar {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #333;
+}
+
+.interaction-btn {
+  background: none;
+  border: none;
+  color: #8899a6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9em;
+  padding: 5px 10px;
+  border-radius: 20px;
+  transition: all 0.2s;
+}
+
+.interaction-btn:hover {
+  background-color: rgba(29, 161, 242, 0.1);
+}
+
+/* Reply Button */
+.reply-btn:hover {
+  color: #1DA1F2;
+}
+
+/* Retweet Button */
+.retweet-btn:hover {
+  color: #17bf63;
+}
+
+.retweet-btn.active {
+  color: #17bf63;
+}
+
+/* Like Button */
+.like-btn:hover {
+  color: #e0245e;
+}
+
+.like-btn.active {
+  color: #e0245e;
+}
+
+/* Share Button */
+.share-btn:hover {
+  color: #1DA1F2;
+}
+
+.interaction-btn .count {
+  font-size: 0.9em;
+  min-width: 20px;
+}
+
+/* Reply Form */
+.reply-form {
+  margin-top: 15px;
+  padding: 15px;
+  background: #111;
+  border-radius: 10px;
+  border: 1px solid #333;
+}
+
+.reply-form textarea {
+  width: 100%;
+  padding: 10px;
+  background: #000;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  resize: vertical;
+  margin-bottom: 10px;
+}
+
+.btn-secondary {
+  background: #333;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 10px;
+}
+
+.btn-secondary:hover {
+  background: #444;
+}
+
+/* Retweet Header */
+.retweet-header {
+  color: #8899a6;
+  font-size: 0.85em;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.retweet-header i {
+  color: #17bf63;
+}
