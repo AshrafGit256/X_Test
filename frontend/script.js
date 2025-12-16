@@ -1,4 +1,7 @@
-const API_URL = window.location.origin + '/api';
+// frontend/script.js - Update at the top
+const API_URL = 'http://localhost:3002/api';
+
+// const API_URL = window.location.origin + '/api';
 const postButton = document.getElementById('postButton');
 const usernameInput = document.getElementById('username');
 const postContentInput = document.getElementById('postContent');
@@ -79,5 +82,63 @@ async function loadPosts() {
 }
 
 // Event listeners
-postButton.addEventListener('click', createPost);
+// In your postButton event listener:
+postButton.addEventListener('click', async () => {
+  const username = usernameInput.value.trim();
+  const content = postContentInput.value.trim();
+  
+  // Check if we have media files
+  const hasMedia = window.mediaUploader && window.mediaUploader.mediaFiles.length > 0;
+  
+  if (!content && !hasMedia) {
+    alert('Please enter content or add media');
+    return;
+  }
+  
+  try {
+    if (hasMedia) {
+      // Use FormData for media upload
+      const formData = new FormData();
+      formData.append('username', username || 'anonymous');
+      formData.append('content', content);
+      
+      // Add each media file
+      window.mediaUploader.mediaFiles.forEach(media => {
+        formData.append('media', media.file);
+      });
+      
+      const response = await fetch(`${API_URL}/posts`, {
+        method: 'POST',
+        body: formData  // Let browser set Content-Type with boundary
+      });
+      
+      if (response.ok) {
+        const newPost = await response.json();
+        addPostToDOM(newPost);
+        postContentInput.value = '';
+        window.mediaUploader.clear();
+      }
+    } else {
+      // Simple JSON for text-only posts
+      const response = await fetch(`${API_URL}/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: username || 'anonymous',
+          content: content
+        })
+      });
+      
+      if (response.ok) {
+        const newPost = await response.json();
+        addPostToDOM(newPost);
+        postContentInput.value = '';
+      }
+    }
+  } catch (error) {
+    console.error('Error creating post:', error);
+    alert('Error: ' + error.message);
+  }
+});
+
 document.addEventListener('DOMContentLoaded', loadPosts);

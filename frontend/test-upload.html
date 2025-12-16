@@ -1,0 +1,56 @@
+<!-- frontend/test-upload.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Media Upload</title>
+</head>
+<body>
+    <h1>Test Media Upload Locally</h1>
+    
+    <div>
+        <input type="file" id="fileInput" multiple accept="image/*">
+        <button onclick="uploadTest()">Upload Test</button>
+    </div>
+    
+    <div id="result"></div>
+    
+    <script>
+    async function uploadTest() {
+        const fileInput = document.getElementById('fileInput');
+        const files = fileInput.files;
+        
+        if (files.length === 0) {
+            alert('Select a file first');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('username', 'testuser');
+        formData.append('content', 'Testing image upload');
+        
+        for (let file of files) {
+            formData.append('media', file);
+        }
+        
+        try {
+            const response = await fetch('http://localhost:3002/api/posts', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            document.getElementById('result').innerHTML = 
+                `<p>✅ Success! Post ID: ${result.id}</p>
+                 <p>Media URLs: ${result.media_urls ? result.media_urls.join(', ') : 'None'}</p>
+                 <img src="${result.media_urls ? result.media_urls[0] : ''}" style="max-width: 300px;">`;
+            
+            console.log('Upload result:', result);
+        } catch (error) {
+            document.getElementById('result').innerHTML = 
+                `<p>❌ Error: ${error.message}</p>`;
+            console.error('Upload error:', error);
+        }
+    }
+    </script>
+</body>
+</html>
